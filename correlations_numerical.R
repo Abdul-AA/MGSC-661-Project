@@ -145,6 +145,9 @@ opt_model <- lm(imdb_score
 # check for colinearity: none found
 vif(opt_model)
 
+quantvars <- c("movie_budget", "duration", "aspect_ratio", "nb_news_articles", "actor1_star_meter", "actor2_star_meter", "actor3_star_meter", "nb_faces", "movie_meter_IMDBpro")
+cor(df_final[,quantvars])
+
 summary(opt_model)
 
 # checking and correcting heteroskedasticity:
