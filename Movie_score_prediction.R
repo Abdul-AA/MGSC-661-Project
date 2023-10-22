@@ -142,7 +142,7 @@ categorical_vars <- c("language", "country",
 #categorical_vars <- setdiff(categorical_vars, binary_cols)
 df[categorical_vars] <- lapply(df[categorical_vars], as.factor)
 
-# Remove the specified columns from the dataframe
+# Remove the identifier columns from the dataframe
 df <- df[, !names(df) %in% c("movie_title", "movie_id", "imdb_link")]
 
 # removing the target col
@@ -304,6 +304,7 @@ final_model <- lm(formula_final, data = df)
 summary(final_model)
 
 # let us try excluding non significant columns
+# The following block of code did not work                                            
 exclude_cols <- c("release_day", "aspect_ratio", "actor1_star_meter", "actor2_star_meter", "actor3_star_meter")
 best_degrees <- list()
 
