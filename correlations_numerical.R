@@ -137,21 +137,27 @@ opt_model <- lm(imdb_score
                 +poly(nb_news_articles,3)
                 +actor1_star_meter
                 +actor2_star_meter
-                +poly(actor3_star_meter,4)
+                +poly(actor3_star_meter,4) #maybe remove?
                 +nb_faces
                 +poly(movie_meter_IMDBpro,5)
                 , data = df_final)
 
+model2 <- lm(imdb_score~ movie_budget + poly(duration, 5) + poly(nb_news_articles, 3) + nb_faces + poly(movie_meter_IMDBpro, 5), data = df_final)
+
+summary(model2)
+
+residualPlot(model2, quadratic=FALSE)
+
 # check for colinearity: none found
-vif(opt_model)
+vif(model2)
 
 quantvars <- c("movie_budget", "duration", "aspect_ratio", "nb_news_articles", "actor1_star_meter", "actor2_star_meter", "actor3_star_meter", "nb_faces", "movie_meter_IMDBpro")
 cor(df_final[,quantvars])
 
-summary(opt_model)
+summary(model2)
 
 # checking and correcting heteroskedasticity:
-ncvTest(opt_model)
+ncvTest(model2)
 
 install.packages("lmtest")
 install.packages("plm")
