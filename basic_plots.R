@@ -1,4 +1,3 @@
-# coding file: main.R
 imdb <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/IMDB_data_Fall_2023.csv')
 attach(imdb)
 
