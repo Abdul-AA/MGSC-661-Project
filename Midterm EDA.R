@@ -124,3 +124,6 @@ for (category_info in lm_list) {
   cat("Category:", category_info$category, "\n")
   print(category_info$summary)
 }
+
+
+###Significant dummies from maturity_level are: R, PG-13, Approved, TV-G, TV-14, 
