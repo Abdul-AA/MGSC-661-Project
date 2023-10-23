@@ -1,6 +1,6 @@
 # TASK: CREATE DUMMY VARIABLES FOR THE GENRES IN TEST SET
 # POPULATE THOSE COLUMNS FOR THE EXISTING DATA SET
-# NEED TO DO THE SAME "IF IN" METHODOLOGY WHICH WE'LL HACVE TO APPLY FOR KEYWORDS
+# NEED TO DO THE SAME "IF IN" METHODOLOGY WHICH WE'LL HAVE TO APPLY FOR KEYWORDS
 
 
 IMDB=read.csv("/Users/aoluwolerotimi/Datasets/IMDB_data_Fall_2023.csv")
@@ -56,16 +56,75 @@ df$Comedy <- ifelse(grepl("Comedy", df$genres), 1, 0)
 df$Mystery <- ifelse(grepl("Mystery", df$genres), 1, 0)
 df$Family <- ifelse(grepl("Family", df$genres), 1, 0)
 
-
+attach(df)
 # then do individual significance tests 
-# see if i need to do "as factor" when it's already a dummified variable 
+lmDocumentary = lm(imdb_score~Documentary)
+summary(lmDocumentary)
 
 
-# see if i can do "to lower" function to make it more fool-proof
+# Loop through the genres and fit linear regression models
+for (genre in genres_to_add) {
+  # Create the formula dynamically
+  formula <- as.formula(paste("imdb_score ~", genre))
+  
+  # Fit the linear regression model
+  lm_genre <- lm(formula)
+  
+  # Print the name of the genre
+  cat("Genre:", genre, "\n")
+  
+  # Print the summary of the linear regression model
+  print(summary(lm_genre))
+}
+
+# won't be able to use this for all because the original dummies don't have capitalization
+# going to try tolower only on the column title 
+
+# Convert the column names to lowercase
+colnames(df[, genres_to_add]) <- tolower(colnames(df[, genres_to_add]))
+attach(df)
+View(df)
+# didn't work 
+
+#df <- df %>% rename(new_name = old_name)
+df <- df %>% rename(documentary = Documentary)
+df <- df %>% rename(biography = Biography)
+df <- df %>% rename(fantasy = Fantasy)
+df <- df %>% rename(comedy = Comedy)
+df <- df %>% rename(mystery = Mystery)
+df <- df %>% rename(family = Family)
+attach(df)
+
+# okay this is working. finish off then loop through all genres
+
+
+all_genres = c("action",	"adventure", "scifi",	"thriller",	"musical", "romance",	"western", "sport",	"horror",	"drama",	"war",
+               "animation",	"crime", "documentary", "biography", "fantasy", "comedy", "mystery", "family")
+
+all_genres
+
+# Loop through the genres and fit linear regression models
+for (genre in all_genres) {
+  # Create the formula dynamically
+  formula <- as.formula(paste("imdb_score ~", genre))
+  
+  # Fit the linear regression model
+  lm_genre <- lm(formula)
+  
+  # Print the name of the genre
+  cat("Genre:", genre, "\n")
+  
+  # Print the summary of the linear regression model
+  print(summary(lm_genre))
+}
 
 
 
-## DOUBLE CHECKING THE COUNT OF CATEGORICAL VARIABLES
+
+# see if i need to do "as factor" when it's already a dummified variable --> seems like no 
+
+
+## SCRAP CODE FROM WHEN WE WERE DOUBLE CHECKING THE COUNT OF CATEGORICAL VARIABLES
 unique_cinematographers <- unique(IMDB$cinematographer)
 num_unique_cinematographers <- length(unique_cinematographers)
 num_unique_cinematographers
