@@ -1,8 +1,10 @@
 IMDB=read.csv("C:/Users/barab/OneDrive/Documents/McGill MMA/Courses/MGSC 661/IMDB_data_Fall_2023.csv")
-attach(IMDB) 
+attach(IMDB)
+
+IMDB_test=read.csv("C:/Users/barab/OneDrive/Documents/McGill MMA/Courses/MGSC 661/test_data_IMDB_Fall_2023.csv")
 
 categorical_columns = c("release_month", "language", "country", "maturity_rating", "aspect_ratio", "distributor", "director",
-                        "actor1", "actor2", "actor3", "colour_film")
+                        "actor1", "actor2", "actor3", "colour_film", "cinematographer", "production_company")
 
 for (col in categorical_columns) {
   IMDB[[col]] <- factor(IMDB[[col]])
@@ -24,10 +26,10 @@ for (col in categorical_columns) {
 }
 
 #Variables that may not be statistically significant include:
-#release_month, language, maturity_rating, actor3, 
+#release_month, language, maturity_rating, actor3
 
 #Variables that are statistically significant include:
-#country, aspect_ratio, distributor, director, actor1, actor2, colour_film
+#country, aspect_ratio, distributor, director, actor1, actor2, colour_film, cinematographer, production_company 
 
 library(ggplot2)
 
@@ -85,3 +87,40 @@ cf_plot <- ggplot(IMDB, aes(x = colour_film)) +
   geom_bar() +
   labs(title = "colour_film", x = "colour_film", y = "Frequency")
 print(cf_plot)
+
+
+#Creating dummies for maturity_rating from training set
+# Load the required libraries
+library(dplyr)
+
+# Read the training data
+IMDB=read.csv("C:/Users/barab/OneDrive/Documents/McGill MMA/Courses/MGSC 661/IMDB_data_Fall_2023.csv")
+
+# List of unique categories within "maturity_rating"
+maturity_categories <- unique(IMDB$maturity_rating)
+
+# Initialize a list to store the regression models and results
+lm_list <- list()
+
+# Loop through each category and perform linear regression
+for (category in maturity_categories) {
+  # Create a dummified variable for the current category
+  IMDB_dummified <- IMDB %>%
+    mutate(dummy = ifelse(maturity_rating == category, 1, 0))
+  
+  # Fit a linear regression model for the current category
+  lm_model <- lm(imdb_score ~ dummy, data = IMDB_dummified)
+  
+  # Store the model and results in the list
+  lm_list[[category]] <- list(
+    category = category,
+    model = lm_model,
+    summary = summary(lm_model)
+  )
+}
+
+# Access results for each category and print them
+for (category_info in lm_list) {
+  cat("Category:", category_info$category, "\n")
+  print(category_info$summary)
+}
