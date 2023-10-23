@@ -1,3 +1,6 @@
+
+setwd('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/')
+
 imdb <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/IMDB_data_Fall_2023.csv')
 attach(imdb)
 
@@ -117,6 +120,8 @@ opt_model <- lm(imdb_score
 
 residualPlot(opt_model, quadratic=FALSE)
 
+summary(opt_model)
+
 
 plot(opt_model)
 
@@ -178,8 +183,26 @@ s <- textSimilarity(x="relationship", y=df_id_keywords[1,2], method="cosine")
 
 # todo: add in the categorical variables
 
+summary(model2)
 
+test = read.csv('test_data_IMDB_Fall_2023.csv')
 
+ # make a prediction on the test data
 
+pred <- predict(model2, newdata = test[,c('movie_budget','duration','nb_news_articles','nb_faces','movie_meter_IMDBpro')])
 
+pred
+
+library(boot)
+library(car)
+
+glm_model2 <- glm(imdb_score~ movie_budget +
+  poly(duration, 5) +
+  poly(nb_news_articles, 3) +
+  nb_faces +
+  poly(movie_meter_IMDBpro, 5),
+             data = df_final)
+
+res = cv.glm(df_final, glm_model2, K=5)
+res$delta
 
