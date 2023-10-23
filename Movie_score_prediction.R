@@ -1,3 +1,4 @@
+df <- read.csv("~/Downloads/IMDB_data_Fall_2023.csv")
 attach(df)
 head(df)
 
@@ -10,7 +11,7 @@ dim(df)
 #lets fetch the column names:
 colnames(df)
 
-# creating a function to subset numeric variables
+#creating a function to subset numeric variables
 subset_numeric <- function(df) {
   return(df[, sapply(df, is.numeric)])
 }
@@ -37,9 +38,8 @@ head(numeric_df)
 # fetch the numeric col names
 
 colnames(numeric_df)
-# Remove 'movie_id' and 'imdb_score' from the list of predictors as they aren't meant for this kind of plot. Note that these are the numeric cols
-predictors <- c("movie_budget", "release_day", "release_year", "duration", 
-                "aspect_ratio", "nb_news_articles", "actor1_star_meter", 
+# Remove 'movie_id', aspect_ratio and 'imdb_score' from the list of predictors as they aren't meant for this kind of plot. Note that these are the numeric cols
+predictors <- c("movie_budget", "release_day", "release_year", "duration", "nb_news_articles", "actor1_star_meter", 
                 "actor2_star_meter", "actor3_star_meter", "nb_faces", 
                 "movie_meter_IMDBpro")
 
@@ -56,15 +56,14 @@ h_plots=lapply(predictors, function(pred) {
     labs(title = paste("Distribution of", pred), x = pred, y='Frequency')
 })
 library(ggpubr)
-# Arrange the plots in 3 matrices
-h_matrix_1 <- ggarrange(plotlist = h_plots[1:4], ncol = 2, nrow = 2)
-h_matrix_2 <- ggarrange(plotlist = h_plots[6:9], ncol = 2, nrow = 2)
-h_matrix_3 <- ggarrange(plotlist = h_plots[9:11], ncol = 2, nrow = 2)
+# Arrange the plots in 2 matrices
+h_matrix_1 <- ggarrange(plotlist = h_plots[1:6], ncol = 3, nrow = 2)
+h_matrix_2 <- ggarrange(plotlist = h_plots[7:11], ncol = 3, nrow = 2)
 
 # Display the matrices
 h_matrix_1
 h_matrix_2
-h_matrix_3
+
 
 # Lets use boxplots to check the distributuion and visually assess each numerical predictors for outliers
 
@@ -74,18 +73,14 @@ b_plots=lapply(predictors, function(pred) {
     theme_minimal() +
     labs(title = paste("Boxplot of", pred), y = pred)
 })
-# Arrange the plots in 3 matrices
-b_matrix_1 <- ggarrange(plotlist = b_plots[1:4], ncol = 2, nrow = 2)
-b_matrix_2 <- ggarrange(plotlist = b_plots[6:9], ncol = 2, nrow = 2)
-b_matrix_3 <- ggarrange(plotlist = b_plots[9:11], ncol = 2, nrow = 2)
+# Arrange the plots in 2 matrices
+b_matrix_1 <- ggarrange(plotlist = b_plots[1:6], ncol = 3, nrow = 2)
+b_matrix_2 <- ggarrange(plotlist = b_plots[7:11], ncol = 3, nrow = 2)
+
 
 # Display the matrices
 b_matrix_1
 b_matrix_2
-b_matrix_3
-
-
-
 
 
 #lets look at the skewness of each numeric var
@@ -99,13 +94,7 @@ data.frame(Predictor = predictors, Skewness = skewness_values, Kurtosis = kurtos
 
 
 
-
-
-
-
-
 # bivariate analysis of each predictor against the target variable: 
-
 
 
 # Iterate over each predictor and create plots
@@ -117,15 +106,14 @@ s_plots <- lapply(predictors, function(pred) {
 })
 
 
-# Arrange the plots in 3 matrices
-s_matrix_1 <- ggarrange(plotlist = s_plots[1:4], ncol = 2, nrow = 2)
-s_matrix_2 <- ggarrange(plotlist = s_plots[6:9], ncol = 2, nrow = 2)
-s_matrix_3 <- ggarrange(plotlist = s_plots[9:11], ncol = 2, nrow = 2)
+# Arrange the plots in 2 matrices
+s_matrix_1 <- ggarrange(plotlist = s_plots[1:6], ncol = 3, nrow = 2)
+s_matrix_2 <- ggarrange(plotlist = s_plots[7:11], ncol = 3, nrow = 2)
 
 # Display the matrices
 s_matrix_1
 s_matrix_2
-s_matrix_3
+
 # Remove identifier cols
 df <- df[, !names(df) %in% c("movie_title", "movie_id", "imdb_link")]
 # 1. Identify Binary Columns
@@ -136,17 +124,19 @@ binary_cols <- names(df)[sapply(df, function(col) length(unique(col)) == 2)]
 
 categorical_vars <- c("language", "country", 
                       "maturity_rating", "distributor", "director", "actor1", "actor2", 
-                      "actor3", "genres","colour_film", "plot_keywords", "cinematographer", 
-                      "production_company")
+                      "actor3", "genres","colour_film","aspect_ratio", "plot_keywords", "cinematographer", 
+                      "production_company","action", "adventure", "scifi", "thriller", "musical", "romance", "western", "sport", 
+                      "horror", "drama", "war", "animation", "crime")
 
 #categorical_vars <- setdiff(categorical_vars, binary_cols)
 df[categorical_vars] <- lapply(df[categorical_vars], as.factor)
 
-# Remove the identifier columns from the dataframe
+# Remove the specified columns from the dataframe
 df <- df[, !names(df) %in% c("movie_title", "movie_id", "imdb_link")]
 
-# removing the target col
-predictors_all <- setdiff(names(df), "imdb_score")
+large_level_vars <- categorical_vars[sapply(df[, categorical_vars], function(x) length(levels(x)) > 50)]
+# removing the target col and columns with too many unique values
+predictors_all <- setdiff(names(df), c("imdb_score", large_level_vars))
 
 # List to store models
 models_list <- list()
@@ -174,6 +164,10 @@ result_df <- data.frame(
 # Print the dataframe
 print(result_df)
 
+# this didnt work: Thought we might need this for our report
+#library(stargazer)
+#stargazer(models_list[1:38], type='html')
+
 #multivariate analysis on the numerial features excluding the binary ones
 
 install.packages('reshape2')
@@ -181,7 +175,7 @@ library(reshape2)  # for melt function
 
 # Subset the numeric columns specified: Recreating numeric_df to exclude id
 numeric_df <- df[c("movie_budget", "release_day", "release_year", "duration", 
-                   "aspect_ratio", "nb_news_articles", "actor1_star_meter", 
+                   "nb_news_articles", "actor1_star_meter", 
                    "actor2_star_meter", "actor3_star_meter", "nb_faces", 
                    "movie_meter_IMDBpro","imdb_score")]
 
@@ -234,7 +228,9 @@ formula <- as.formula(paste("imdb_score ~", paste(predictors_mlr, collapse = " +
 # Fit the model for the entire data 
 model1 <- lm(formula, data = df)
 summary(model1)
-residualPlots(model1)
+
+library('car')
+#residualPlots(model1)
 
 # lets create a linear model for the numeric data
 
@@ -285,9 +281,15 @@ get_rmse <- function(degree, predictor) {
 best_degrees <- list()
 
 for (var in nonlinear_vars) {
-  rmse_values <- sapply(1:10, get_rmse, predictor = var)
+  rmse_values <- sapply(1:5, get_rmse, predictor = var)
   best_degrees[[var]] <- which.min(rmse_values)
 }
+best_degrees
+
+# movie_budget:1, duration:2, nb_news_article:1, movie_meter_IMDBpro: 5
+
+
+
 
 # Create the formula with the best polynomial transformations
 polynomial_terms <- sapply(names(best_degrees), function(var) {
@@ -303,13 +305,12 @@ formula_final <- as.formula(paste("imdb_score ~", paste(all_predictors, collapse
 final_model <- lm(formula_final, data = df)
 summary(final_model)
 
-# let us try excluding non significant columns
-# The following block of code did not work                                            
-exclude_cols <- c("release_day", "aspect_ratio", "actor1_star_meter", "actor2_star_meter", "actor3_star_meter")
+# let us try excluding non significant and country, and release_month columns 
+exclude_cols <- c("release_day", "aspect_ratio","country","release_month" ,"actor1_star_meter", "actor2_star_meter", "actor3_star_meter")
 best_degrees <- list()
 
 for (var in nonlinear_vars) {
-  rmse_values <- sapply(1:10, get_rmse, predictor = var)
+  rmse_values <- sapply(1:5, get_rmse, predictor = var)
   best_degrees[[var]] <- which.min(rmse_values)
 }
 
@@ -324,6 +325,32 @@ all_predictors <- c(polynomial_terms, linear_terms)
 formula_final <- as.formula(paste("imdb_score ~", paste(all_predictors, collapse = " + ")))
 
 # Fit the final model
-final_model <- lm(formula_final, data = df)
-summary(final_model)
+final_model_cleaned <- lm(formula_final, data = df)
+summary(final_model_cleaned)
+which.min(rmse_values)
+# prepping the test data 
+cat_cols <- c( "release_month", "aspect_ratio","language", "country", "maturity_rating", 
+               "colour_film", "action", "adventure", "scifi", "thriller", "musical", "romance", 
+               "western", "sport", "horror", "drama", "war", "animation", "crime")
+test_set[cat_cols] <- lapply(test_set[cat_cols], as.factor)
+head(test_set)
+predictions <- predict(final_model_cleaned, newdata = test_set)
+
+results <- data.frame(
+  Actual = test_set$imdb_score, 
+  Predicted = predictions
+)
+test_set$imdb_score
+# Compute MSE
+results$Error_Squared <- (results$Actual - results$Predicted)^2
+mse <- mean(results$Error_Squared)
+
+results <- cbind(results, MSE = mse)
+
+# Display the data frame
+head(results)
+
+
+
+
 
