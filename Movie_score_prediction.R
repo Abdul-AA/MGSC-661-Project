@@ -262,7 +262,7 @@ vif(model_numeric)
 
 ###We can create a model based on linearity and select predictors based on p-values. There is no collinearity in our dataset
 
-
+####NOW WORKING ON THE FINAL DATA####
 
 library(caret)
 # New  Processed data
