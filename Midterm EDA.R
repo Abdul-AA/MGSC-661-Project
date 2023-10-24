@@ -129,7 +129,7 @@ for (category_info in lm_list) {
 
 ###Significant dummies from maturity_level are: R, PG-13, Approved, TV-G, TV-14, 
 # add the dummies to the processed dataset
-processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv')
+processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/Cat_featurs_except_genres_key_words.csv')
 
 # insert column names dummy_R, dummy_PG-13, dummy_Approved, dummy_TV-G, dummy_TV-14 into processed_dataset, left join on movie_id
 useful_dummies <- c("dummy_R", "dummy_PG-13", "dummy_Approved", "dummy_TV-G", "dummy_TV-14")
@@ -137,3 +137,10 @@ processed_dataset <- processed_dataset %>% left_join(IMDB %>% select(movie_id, a
 
 write.csv(processed_dataset, file = "/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv")
 
+
+# add "movie_budget", "duration", "nb_news_articles", "movie_meter_IMDBpro, nb_faces, actor3_star_meter
+useful_numericals <- c("movie_budget", "duration", "nb_news_articles", "movie_meter_IMDBpro", "nb_faces", "actor3_star_meter")
+
+processed_dataset <- processed_dataset %>% left_join(IMDB %>% select(movie_id, all_of(useful_numericals)), by = "movie_id")
+
+write.csv(processed_dataset, file = "/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv")

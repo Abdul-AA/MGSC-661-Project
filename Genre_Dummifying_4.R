@@ -179,12 +179,13 @@ useful_genres <- c("action", "adventure", "scifi", "thriller", "western", "sport
                    "crime", "documentary", "biography", "fantasy", "comedy", "family")
 
 genres_dummies <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/genres_dummied_z.csv')
-processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv')
+processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/final_df.csv')
 
-# add genres_dummies[useful_genres] to processed_dataset
-processed_dataset <- processed_dataset %>% left_join(genres_dummies %>% select(movie_id, all_of(useful_genres)), by = "movie_id")
+# add genres_dummies[useful_genres] to processed_dataset using cbind and movie_id as the key
+processed_dataset <- cbind(processed_dataset, genres_dummies[,c("movie_id", useful_genres)])
 
-write.csv(processed_dataset, file = "/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv")
+
+write.csv(processed_dataset, file = "/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/final_df.csv")
 
 
 
