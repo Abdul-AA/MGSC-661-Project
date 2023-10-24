@@ -241,7 +241,7 @@ summary(reg)
 Cat_train
 
 
-write.csv(Cat_train, file = "Year_Season_Imax.csv", row.names = FALSE)
+write.csv(Cat_train, file = "processed_dataset.csv", row.names = FALSE)
 
 getwd()
 
@@ -287,7 +287,7 @@ summary(reg)
 
 View(Cat_train)
 
-write.csv(Cat_train, file = "Year_Season_Imax.csv", row.names = FALSE)
+write.csv(Cat_train, file = "processed_dataset.csv", row.names = FALSE)
 
 
 

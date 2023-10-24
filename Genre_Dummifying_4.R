@@ -1,4 +1,4 @@
-IMDB=read.csv("/Users/aoluwolerotimi/Datasets/IMDB_data_Fall_2023.csv")
+IMDB=read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/IMDB_data_Fall_2023.csv')
 View(IMDB)
 attach(IMDB) 
 
@@ -175,6 +175,16 @@ write.csv(df, "genres_dummied_z.csv", row.names = FALSE)
 # comedy
 # family
 
+useful_genres <- c("action", "adventure", "scifi", "thriller", "western", "sport", "horror", "drama", "war",
+                   "crime", "documentary", "biography", "fantasy", "comedy", "family")
+
+genres_dummies <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/genres_dummied_z.csv')
+processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv')
+
+# add genres_dummies[useful_genres] to processed_dataset
+processed_dataset <- processed_dataset %>% left_join(genres_dummies %>% select(movie_id, all_of(useful_genres)), by = "movie_id")
+
+write.csv(processed_dataset, file = "/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv")
 
 
 

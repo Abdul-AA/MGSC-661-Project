@@ -35,3 +35,15 @@ summary_table$coefficients
 
 # save the coefficients to a csv file
 write.csv(summary_table$coefficients, file = "plot_keywords_coefficients.csv")
+
+keywords_pred <- c("comput", "campus", "holiday", "riot", "terror", "escap", "wish", "love")
+
+processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv')
+
+library(dplyr)
+
+processed_dataset <- processed_dataset %>% left_join(imdb %>% select(movie_id, all_of(keywords_pred)), by = "movie_id")
+
+# save the processed dataset to a csv file
+write.csv(processed_dataset, file = "/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv")
+

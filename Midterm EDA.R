@@ -1,7 +1,7 @@
-IMDB=read.csv("C:/Users/barab/OneDrive/Documents/McGill MMA/Courses/MGSC 661/IMDB_data_Fall_2023.csv")
+IMDB=read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/IMDB_data_Fall_2023.csv')
 attach(IMDB)
 
-IMDB_test=read.csv("C:/Users/barab/OneDrive/Documents/McGill MMA/Courses/MGSC 661/test_data_IMDB_Fall_2023.csv")
+IMDB_test=read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/test_data_IMDB_Fall_2023.csv')
 
 categorical_columns = c("release_month", "language", "country", "maturity_rating", "aspect_ratio", "distributor", "director",
                         "actor1", "actor2", "actor3", "colour_film", "cinematographer", "production_company")
@@ -37,6 +37,7 @@ rm_plot <- ggplot(IMDB, aes(x = release_month)) +
   geom_bar() +
   labs(title = "release_month", x = "release_month", y = "Frequency")
 print(rm_plot)
+
 
 language_plot <- ggplot(IMDB, aes(x = language)) +
   geom_bar() +
@@ -94,7 +95,7 @@ print(cf_plot)
 library(dplyr)
 
 # Read the training data
-IMDB=read.csv("C:/Users/barab/OneDrive/Documents/McGill MMA/Courses/MGSC 661/IMDB_data_Fall_2023.csv")
+IMDB=read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/IMDB_data_Fall_2023.csv')
 
 # List of unique categories within "maturity_rating"
 maturity_categories <- unique(IMDB$maturity_rating)
@@ -107,7 +108,7 @@ for (category in maturity_categories) {
   # Create a dummified variable for the current category
   IMDB[paste0("dummy_", category)] <- as.integer(IMDB$maturity_rating == category)
 
-  
+
   # Fit a linear regression model for the current category
   lm_model <- lm(imdb_score ~ dummy, data = IMDB_dummified)
   
@@ -127,3 +128,12 @@ for (category_info in lm_list) {
 
 
 ###Significant dummies from maturity_level are: R, PG-13, Approved, TV-G, TV-14, 
+# add the dummies to the processed dataset
+processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv')
+
+# insert column names dummy_R, dummy_PG-13, dummy_Approved, dummy_TV-G, dummy_TV-14 into processed_dataset, left join on movie_id
+useful_dummies <- c("dummy_R", "dummy_PG-13", "dummy_Approved", "dummy_TV-G", "dummy_TV-14")
+processed_dataset <- processed_dataset %>% left_join(IMDB %>% select(movie_id, all_of(useful_dummies)), by = "movie_id")
+
+write.csv(processed_dataset, file = "/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/processed_imdb_dataset.csv")
+

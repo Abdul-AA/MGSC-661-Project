@@ -181,8 +181,6 @@ df_id_keywords[1,2]
 
 s <- textSimilarity(x="relationship", y=df_id_keywords[1,2], method="cosine")
 
-# todo: add in the categorical variables
-
 summary(model2)
 
 test = read.csv('test_data_IMDB_Fall_2023.csv')
