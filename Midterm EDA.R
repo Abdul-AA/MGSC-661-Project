@@ -105,8 +105,8 @@ lm_list <- list()
 # Loop through each category and perform linear regression
 for (category in maturity_categories) {
   # Create a dummified variable for the current category
-  IMDB_dummified <- IMDB %>%
-    mutate(dummy = ifelse(maturity_rating == category, 1, 0))
+  IMDB[paste0("dummy_", category)] <- as.integer(IMDB$maturity_rating == category)
+
   
   # Fit a linear regression model for the current category
   lm_model <- lm(imdb_score ~ dummy, data = IMDB_dummified)
