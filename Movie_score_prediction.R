@@ -23,9 +23,10 @@ dim(numeric_df)
 
 # 26 numeric features; however, some of this may be binary. Let us check
 
+
 head(numeric_df)
 numeric_df <- numeric_df[, sapply(numeric_df, function(col) length(unique(col)) > 2)]
-
+colnames(numeric_df)
 # let us check the new shape
 
 dim(numeric_df)
@@ -260,10 +261,15 @@ library(psych)
 vif(model_numeric)
 
 ###We can create a model based on linearity and select predictors based on p-values. There is no collinearity in our dataset
-install.packages('caret')
-library(caret)
 
-# Variables showing non-linearity
+####NOW WORKING ON THE FINAL DATA####
+
+library(caret)
+# New  Processed data
+p_df <- read.csv("~/Desktop/merged_df.csv")
+
+# looking for the optimal polynomial combo for the nonlinear variables
+#predictor=colnames(p_df)
 nonlinear_vars <- c("movie_budget", "duration", "nb_news_articles", "movie_meter_IMDBpro")
 
 # Set up cross-validation
@@ -273,7 +279,7 @@ train_control <- trainControl(method = "cv", number = 5)
 get_rmse <- function(degree, predictor) {
   formula <- as.formula(paste("imdb_score ~", paste0("poly(", predictor, ", ", degree, ")")))
   set.seed(123) # Setting seed for reproducibility
-  model <- train(formula, data = df, method = "lm", trControl = train_control, metric = "RMSE")
+  model <- train(formula, data = p_df, method = "lm", trControl = train_control, metric = "RMSE")
   return(model$results$RMSE[1])
 }
 
@@ -286,71 +292,86 @@ for (var in nonlinear_vars) {
 }
 best_degrees
 
-# movie_budget:1, duration:2, nb_news_article:1, movie_meter_IMDBpro: 5
 
+predictors_mlr=setdiff(colnames(p_df),'imdb_score')
 
+# looking for the optimal poly combo for the numeric vars
+# Identify numeric non-binary columns
+numeric_vars <- sapply(p_df, is.numeric)
+binary_vars <- sapply(p_df, function(x) all(x %in% c(0,1)))
+nonbinary_numeric_vars <- setdiff(names(p_df)[numeric_vars & !binary_vars], 'imdb_score')
 
+# Set up cross-validation
+train_control <- trainControl(method = "cv", number = 5)
 
-# Create the formula with the best polynomial transformations
-polynomial_terms <- sapply(names(best_degrees), function(var) {
-  paste0("poly(", var, ", ", best_degrees[[var]], ")")
-})
+# Define a function to calculate the RMSE for a given degree of polynomial
+get_rmse <- function(degree, predictor) {
+  formula <- as.formula(paste("imdb_score ~", paste0("poly(", predictor, ", ", degree, ")")))
+  set.seed(123) # Setting seed for reproducibility
+  model <- train(formula, data = p_df, method = "lm", trControl = train_control, metric = "RMSE")
+  return(model$results$RMSE[1])
+}
 
-linear_terms <- setdiff(predictors_mlr, c("imdb_score", nonlinear_vars))
-all_predictors <- c(polynomial_terms, linear_terms)
-
-formula_final <- as.formula(paste("imdb_score ~", paste(all_predictors, collapse = " + ")))
-
-# Fit the final model
-final_model <- lm(formula_final, data = df)
-summary(final_model)
-
-# let us try excluding non significant and country, and release_month columns 
-exclude_cols <- c("release_day", "aspect_ratio","country","release_month" ,"actor1_star_meter", "actor2_star_meter", "actor3_star_meter")
+# Identify the best polynomial degree for each non-binary numeric predictor
 best_degrees <- list()
 
-for (var in nonlinear_vars) {
+for (var in nonbinary_numeric_vars) {
   rmse_values <- sapply(1:5, get_rmse, predictor = var)
   best_degrees[[var]] <- which.min(rmse_values)
 }
+best_degrees
+which.min(rmse_values)
 
-# Create the formula with the best polynomial transformations
+# applying the polynomial terms found from the gridsearch to create the final model
 polynomial_terms <- sapply(names(best_degrees), function(var) {
   paste0("poly(", var, ", ", best_degrees[[var]], ")")
 })
 
-linear_terms <- setdiff(predictors_mlr, c("imdb_score",exclude_cols, nonlinear_vars))
+# setting the predictors up 
+predictors_mlr=setdiff(colnames(p_df),'imdb_score')
+
+linear_terms <- setdiff(predictors_mlr,  nonbinary_numeric_vars)
 all_predictors <- c(polynomial_terms, linear_terms)
 
 formula_final <- as.formula(paste("imdb_score ~", paste(all_predictors, collapse = " + ")))
 
 # Fit the final model
-final_model_cleaned <- lm(formula_final, data = df)
-summary(final_model_cleaned)
-which.min(rmse_values)
-# prepping the test data 
-cat_cols <- c( "release_month", "aspect_ratio","language", "country", "maturity_rating", 
-               "colour_film", "action", "adventure", "scifi", "thriller", "musical", "romance", 
-               "western", "sport", "horror", "drama", "war", "animation", "crime")
-test_set[cat_cols] <- lapply(test_set[cat_cols], as.factor)
-head(test_set)
-predictions <- predict(final_model_cleaned, newdata = test_set)
+final_model <- lm(formula_final, data = p_df)
+summary(final_model)
 
-results <- data.frame(
-  Actual = test_set$imdb_score, 
-  Predicted = predictions
-)
-test_set$imdb_score
-# Compute MSE
-results$Error_Squared <- (results$Actual - results$Predicted)^2
-mse <- mean(results$Error_Squared)
 
-results <- cbind(results, MSE = mse)
+# Setting up cross-validation to evaluate the performance of the final model
+train_control <- trainControl(method = "cv", number = 5)
 
-# Display the data frame
-head(results)
+# Training the model using cross-validation with 5 folds
+set.seed(123)  # Setting seed for reproducibility
+cv_model <- train(formula_final, data = p_df, method = "lm", trControl = train_control, metric = "RMSE")
+
+# Display the results
+print(cv_model)
 
 
 
+install.packages("cvTools")
+library(cvTools)
 
 
+# comparing the predicted scores to the actuals in a dataframe
+set.seed(123)
+cv_indices <- createFolds(p_df$imdb_score, k = 5)
+predictions <- numeric()  # Vector to store predictions
+actuals <- numeric()      # Vector to store actual values
+
+for (k in 1:5) {
+  train_data <- p_df[-cv_indices[[k]], ]
+  valid_data <- p_df[cv_indices[[k]], ]
+  
+  model <- lm(formula_final, data = train_data)
+  preds <- predict(model, newdata = valid_data)
+  
+  predictions <- c(predictions, preds)
+  actuals <- c(actuals, valid_data$imdb_score)
+}
+
+results <- data.frame(Actual = actuals, Predicted = predictions)
+print(results)
