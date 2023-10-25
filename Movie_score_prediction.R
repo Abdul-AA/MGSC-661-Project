@@ -138,7 +138,6 @@ df <- df[, !names(df) %in% c("movie_title", "movie_id", "imdb_link")]
 large_level_vars <- categorical_vars[sapply(df[, categorical_vars], function(x) length(levels(x)) > 50)]
 # removing the target col and columns with too many unique values
 predictors_all <- setdiff(names(df), c("imdb_score", large_level_vars))
-
 # List to store models
 models_list <- list()
 
@@ -262,11 +261,13 @@ vif(model_numeric)
 
 ###We can create a model based on linearity and select predictors based on p-values. There is no collinearity in our dataset
 
-####NOW WORKING ON THE FINAL DATA####
+
 
 library(caret)
 # New  Processed data
-p_df <- read.csv("~/Desktop/merged_df.csv")
+p_df <- read.csv("~/Downloads/Cleaned Training Set.csv")
+p_df$movie_id <- NULL
+
 
 # looking for the optimal polynomial combo for the nonlinear variables
 #predictor=colnames(p_df)
@@ -293,7 +294,7 @@ for (var in nonlinear_vars) {
 best_degrees
 
 
-predictors_mlr=setdiff(colnames(p_df),'imdb_score')
+#predictors_mlr=setdiff(colnames(p_df),'imdb_score')
 
 # looking for the optimal poly combo for the numeric vars
 # Identify numeric non-binary columns
@@ -345,7 +346,7 @@ train_control <- trainControl(method = "cv", number = 5)
 
 # Training the model using cross-validation with 5 folds
 set.seed(123)  # Setting seed for reproducibility
-cv_model <- train(formula_final, data = p_df, method = "lm", trControl = train_control, metric = "RMSE")
+cv_model <- train(formula_final, data = p_df, method = "lm", trControl = train_control, metric = "MSE")
 
 # Display the results
 print(cv_model)
@@ -362,6 +363,37 @@ cv_indices <- createFolds(p_df$imdb_score, k = 5)
 predictions <- numeric()  # Vector to store predictions
 actuals <- numeric()      # Vector to store actual values
 
+for (k in 1:5) {
+  train_data <- p_df[-cv_indices[[k]], ]
+  valid_data <- p_df[cv_indices[[k]], ]
+  
+  model <- lm(formula_final, data = train_data)
+  preds <- predict(model, newdata = valid_data)
+  
+  predictions <- c(predictions, preds)
+  actuals <- c(actuals, valid_data$imdb_score)
+}
+
+results <- data.frame(Actual = actuals, Predicted = predictions)
+print(results)
+
+library(car)
+outlierTest(final_model)
+
+# dropping the outliers
+rows_to_drop <- c(492, 1806, 1581, 191, 395, 1592, 316, 599, 1123)
+p_df <- p_df[-rows_to_drop, ]
+# Assessing performance after dropping outliers
+train_control <- trainControl(method = "cv", number = 5)
+
+# Training the model using cross-validation with 5 folds
+set.seed(123)  # Setting seed for reproducibility
+cv_model <- train(formula_final, data = p_df, method = "lm", trControl = train_control, metric = "RMSE")
+
+# Display the results
+print(cv_model)
+
+# View actuals and predicted in a dataframe
 for (k in 1:5) {
   train_data <- p_df[-cv_indices[[k]], ]
   valid_data <- p_df[cv_indices[[k]], ]
