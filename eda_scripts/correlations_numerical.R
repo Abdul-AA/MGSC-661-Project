@@ -1,7 +1,7 @@
 
 setwd('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/')
 
-imdb <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/IMDB_data_Fall_2023.csv')
+imdb <- read.csv('/midterm-project/MGSC-661-Project/IMDB_data_Fall_2023.csv')
 attach(imdb)
 
 # keep only numerical variables
@@ -183,7 +183,7 @@ s <- textSimilarity(x="relationship", y=df_id_keywords[1,2], method="cosine")
 
 summary(model2)
 
-test = read.csv('test_data_IMDB_Fall_2023.csv')
+test = read.csv('../test_data_IMDB_Fall_2023.csv')
 
  # make a prediction on the test data
 

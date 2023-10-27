@@ -89,7 +89,7 @@ numerical_features <- c("movie_budget",
 
 
 
-
+# adventure, scifi, thriller, romance, drama, war, crime are non linear but have only 2 predicted values
 numerical_features <- c("movie_budget", "duration", "nb_news_articles", "actor1_star_meter", "actor2_star_meter", "actor3_star_meter", "nb_faces", "action", "adventure", "scifi", "thriller", "musical", "romance", "western", "sport", "horror", "drama", "war", "animation", "crime", "movie_meter_IMDBpro")
 
 

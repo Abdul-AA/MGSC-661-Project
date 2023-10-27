@@ -52,9 +52,9 @@ data = cbind(train[numerical_features],Cat_train[c('imdb_score',
                                                    'Documentary')])
 
 
-imdb <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/IMDB_data_Fall_2023.csv')
+imdb <- read.csv('/midterm-project/MGSC-661-Project/IMDB_data_Fall_2023.csv')
 
-test <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/test_data_IMDB_Fall_2023.csv')
+test <- read.csv('/midterm-project/MGSC-661-Project/test_data_IMDB_Fall_2023.csv')
 
 install.packages("tm")
 install.packages("SnowballC")

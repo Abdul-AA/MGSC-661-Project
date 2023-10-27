@@ -1,6 +1,6 @@
-imdb <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/IMDB_data_Fall_2023.csv')
+imdb <- read.csv('/midterm-project/MGSC-661-Project/IMDB_data_Fall_2023.csv')
 
-test <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/test_data_IMDB_Fall_2023.csv')
+test <- read.csv('/midterm-project/MGSC-661-Project/test_data_IMDB_Fall_2023.csv')
 
 install.packages("tm")
 install.packages("SnowballC")
@@ -34,11 +34,11 @@ summary_table$coefficients
 # can use "comput", "campus" (0.05), "holiday", "riot", "terror", "escap" (0.05), "wish", "love"
 
 # save the coefficients to a csv file
-write.csv(summary_table$coefficients, file = "plot_keywords_coefficients.csv")
+write.csv(summary_table$coefficients, file = "../plot_keywords_coefficients.csv")
 
 keywords_pred <- c("comput", "campus", "holiday", "riot", "terror", "escap", "wish", "love")
 
-processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/final_df.csv')
+processed_dataset <- read.csv('/midterm-project/MGSC-661-Project/final_df.csv')
 
 library(dplyr)
 
@@ -50,11 +50,11 @@ processed_dataset <- cbind(processed_dataset, imdb[,c("movie_id", keywords_pred)
 # processed_dataset <- processed_dataset %>% left_join(imdb %>% select(movie_id, all_of(keywords_pred)), by = "movie_id")
 
 # save the processed dataset to a csv file
-write.csv(processed_dataset, file = "/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/final_df.csv")
+write.csv(processed_dataset, file = "/midterm-project/MGSC-661-Project/final_df.csv")
 
 
 # add imdb columns "movie_budget", "duration", "nb_news_articles", "movie_meter_IMDBpro, nb_faces, actor3_star_meter to the processed dataset
-processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/final_df.csv')
+processed_dataset <- read.csv('/midterm-project/MGSC-661-Project/final_df.csv')
 
 # insert column names "movie_budget", "duration", "nb_news_articles", "movie_meter_IMDBpro, nb_faces, actor3_star_meter into processed_dataset, cbind on movie_id
 processed_dataset <- cbind(processed_dataset, imdb[,c("movie_id", "movie_budget", "duration", "nb_news_articles", "movie_meter_IMDBpro", "nb_faces", "actor3_star_meter")])

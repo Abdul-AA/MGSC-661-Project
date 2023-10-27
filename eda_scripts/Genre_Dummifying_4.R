@@ -1,4 +1,4 @@
-IMDB=read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/IMDB_data_Fall_2023.csv')
+IMDB=read.csv('/midterm-project/MGSC-661-Project/IMDB_data_Fall_2023.csv')
 View(IMDB)
 attach(IMDB) 
 
@@ -156,7 +156,7 @@ for (genre in all_genres) {
   print(summary(lm_genre))
 }
 
-write.csv(df, "genres_dummied_z.csv", row.names = FALSE)
+write.csv(df, "../genres_dummied_z.csv", row.names = FALSE)
 
 ## list of the significant ones, at 0.05, single * 
 # action
@@ -178,14 +178,14 @@ write.csv(df, "genres_dummied_z.csv", row.names = FALSE)
 useful_genres <- c("action", "adventure", "scifi", "thriller", "western", "sport", "horror", "drama", "war",
                    "crime", "documentary", "biography", "fantasy", "comedy", "family")
 
-genres_dummies <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/genres_dummied_z.csv')
-processed_dataset <- read.csv('/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/final_df.csv')
+genres_dummies <- read.csv('/midterm-project/MGSC-661-Project/genres_dummied_z.csv')
+processed_dataset <- read.csv('/midterm-project/MGSC-661-Project/final_df.csv')
 
 # add genres_dummies[useful_genres] to processed_dataset using cbind and movie_id as the key
 processed_dataset <- cbind(processed_dataset, genres_dummies[,c("movie_id", useful_genres)])
 
 
-write.csv(processed_dataset, file = "/Users/avimalhotra/Desktop/McGill MMA/Fall 23/MGSC661 Multivar Stats/midterm-project/MGSC-661-Project/final_df.csv")
+write.csv(processed_dataset, file = "/midterm-project/MGSC-661-Project/final_df.csv")
 
 
 
