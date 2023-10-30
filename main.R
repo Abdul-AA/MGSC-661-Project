@@ -54,55 +54,56 @@ create_maturity = function(data,f){
   return(ifelse(data[f]>=1, 1, 0))
 }
 
-transform_test = function(test){
+transform_data = function(df){
 
-  test$Biography <- ifelse(grepl("Biography", test$genres), 1, 0)+ifelse(grepl("biography", test$plot_keywords), 1, 0)
-  test$biography = ifelse(test$Biography>=1,1,0)
+  df$Biography <- ifelse(grepl("Biography", df$genres), 1, 0)+ifelse(grepl("biography", df$plot_keywords), 1, 0)
+  df$biography = ifelse(df$Biography>=1, 1, 0)
 
-  test$Comedy  <- ifelse(grepl("Comedy ", test$genres), 1, 0)+ifelse(grepl("comedy", test$plot_keywords), 1, 0)
-  test$comedy  = ifelse(test$Comedy >=1,1,0)
-
-
-  test$Animation  <- ifelse(grepl("Animation", test$genres), 1, 0)+ifelse(grepl("animation", test$plot_keywords), 1, 0)
-  test$animation = ifelse(test$Animation >=1,1,0)
+  df$Comedy  <- ifelse(grepl("Comedy ", df$genres), 1, 0)+ifelse(grepl("comedy", df$plot_keywords), 1, 0)
+  df$comedy  = ifelse(df$Comedy >=1, 1, 0)
 
 
-  test$Documentary  <- ifelse(grepl("Documentary", test$genres), 1, 0)+ifelse(grepl("documentary", test$plot_keywords), 1, 0)
-  test$documentary = ifelse(test$Documentary >=1,1,0)
+  df$Animation  <- ifelse(grepl("Animation", df$genres), 1, 0)+ifelse(grepl("animation", df$plot_keywords), 1, 0)
+  df$animation = ifelse(df$Animation >=1, 1, 0)
 
 
-  test$is_Miramax = ifelse(grepl('Miramax', test$production_company), 1,0)
-  test$is_Nov = ifelse(grepl('Nov', test$release_month), 1,0)
-  test$is_Dec = ifelse(grepl('Dec', test$release_month), 1,0)
+  df$Documentary  <- ifelse(grepl("Documentary", df$genres), 1, 0)+ifelse(grepl("documentary", df$plot_keywords), 1, 0)
+  df$documentary = ifelse(df$Documentary >=1, 1, 0)
 
-  test$is_color = ifelse(test$colour_film=="Color",1,0)
+
+  df$is_Miramax = ifelse(grepl('Miramax', df$production_company), 1, 0)
+  df$is_Nov = ifelse(grepl('Nov', df$release_month), 1, 0)
+  df$is_Dec = ifelse(grepl('Dec', df$release_month), 1, 0)
+
+  df$is_color = ifelse(df$colour_film=="Color", 1, 0)
+
 
   maturity =c("R","PG-13",'Approved','TV-G','TV-14')
 
   for (r in maturity){
-    test[r] = create_maturity(test,r)
+    df[r] = create_maturity(df, r)
   }
-  test['TV.G'] = test['TV-G']
-  test['TV.14'] = test['TV-14']
+  df['TV.G'] = df['TV-G']
+  df['TV.14'] = df['TV-14']
 
-  test$actor1_length = lapply(test$actor1,nchar)
-  test$genres_length = lapply(test$genres,nchar)
-  test$distributor_length = lapply(test$distributor,nchar)
-  test$movie_title_length = lapply(test$movie_title,nchar)
+  df$actor1_length = lapply(df$actor1, nchar)
+  df$genres_length = lapply(df$genres, nchar)
+  df$distributor_length = lapply(df$distributor, nchar)
+  df$movie_title_length = lapply(df$movie_title, nchar)
 
-  test$actor1_length = as.numeric(test$actor1_length)
-  test$genres_length = as.numeric(test$genres_length)
-  test$distributor_length = as.numeric(test$distributor_length)
-  test$movie_title_length = as.numeric(test$movie_title_length)
-  test$comput  <- ifelse(grepl("comput", test$plot_keywords), 1, 0)
-  test$holiday  <- ifelse(grepl("holiday", test$plot_keywords), 1, 0)
-  test$riot  <- ifelse(grepl("riot", test$plot_keywords), 1, 0)
-  test$terror  <- ifelse(grepl("terror", test$plot_keywords), 1, 0)
-  test$wish  <- ifelse(grepl("wish", test$plot_keywords), 1, 0)
-  test$love  <- ifelse(grepl("love", test$plot_keywords), 1, 0)
+  df$actor1_length = as.numeric(df$actor1_length)
+  df$genres_length = as.numeric(df$genres_length)
+  df$distributor_length = as.numeric(df$distributor_length)
+  df$movie_title_length = as.numeric(df$movie_title_length)
+  df$comput  <- ifelse(grepl("comput", df$plot_keywords), 1, 0)
+  df$holiday  <- ifelse(grepl("holiday", df$plot_keywords), 1, 0)
+  df$riot  <- ifelse(grepl("riot", df$plot_keywords), 1, 0)
+  df$terror  <- ifelse(grepl("terror", df$plot_keywords), 1, 0)
+  df$wish  <- ifelse(grepl("wish", df$plot_keywords), 1, 0)
+  df$love  <- ifelse(grepl("love", df$plot_keywords), 1, 0)
 
 
-  return(test)
+  return(df)
 }
 
 perform_chi_squared_test <- function(variable, imdb_score, variable_name) {
@@ -122,6 +123,21 @@ get_rmse <- function(degree, predictor) {
   set.seed(123) # Setting seed for reproducibility
   model <- train(formula, data = p_df, method = "lm", trControl = train_control, metric = "RMSE")
   return(model$results$RMSE[1])
+}
+
+get_cv_mse = function(model,data,K){
+
+  mse_distribution = c()
+
+  for (i in 1:100){
+
+    mse_distribution = c(mse_distribution,cv.glm(data,model,K = K)$delta[1])
+
+  }
+
+  print( mse_distribution)
+
+  hist( mse_distribution)
 }
 
 create_logs <- function(df) {
@@ -402,8 +418,383 @@ Cat_train %>%
   theme_minimal()
 
 
+####################
+# Data Manipulation & Model Development
+####################
+
+# transform data as per EDA
+df <- transform_data(imdb)
+test = transform_data(test)
+
+
+hist(df$nb_news_articles,breaks = 100)
+hist(df$movie_meter_IMDBpro, breaks = 100)
+hist(df$duration, breaks = 100)
+hist(df$movie_budget, breaks = 100)
+hist(df$actor1_star_meter, breaks = 100)
+hist(log(df$actor1_star_meter), breaks = 100)
+
+# converting the above columns into log data
+df$log_movie_budget = log(df$movie_budget)
+df$log_actor1_star_meter = log(df$actor1_star_meter)
+df$log_actor1_star_meter <- ifelse(is.infinite(df$log_actor1_star_meter) & df$log_actor1_star_meter < 0, 0, df$log_actor1_star_meter)
+
+df$log_actor3_star_meter = log(df$actor3_star_meter)
+df$log_actor3_star_meter <- ifelse(is.infinite(df$log_actor3_star_meter) & df$log_actor3_star_meter < 0, 0, df$log_actor3_star_meter)
+
+df$log_nb_faces = log(df$nb_faces)
+df$log_nb_faces <- ifelse(is.infinite(df$log_nb_faces) & df$log_nb_faces < 0, 0, df$log_nb_faces)
+
+test$log_actor1_star_meter = log(test$actor1_star_meter)
+test$log_actor1_star_meter <- ifelse(is.infinite(test$log_actor1_star_meter) & test$log_actor1_star_meter < 0, 0, test$log_actor1_star_meter)
+
+View(test)
+
+hist(df$genres_length, breaks = 100)
+hist(df$distributor_length, breaks = 100)
+hist(df$actor3_star_meter, breaks = 10)
+hist(df$nb_faces, breaks = 100)
+hist(df$log_nb_news_articles, breaks = 100)
+hist(df$log_movie_meter_IMDBpro, breaks = 100)
+hist(log(df$duration), breaks = 100)
+hist(log(df$movie_budget), breaks = 100)
+hist(log(df$log_nb_faces),breaks = 100)
+
+
+numerical_features = c("movie_title_length","aspect_ratio" , "genres_length" ,"distributor_length","actor1_length",
+                       "movie_budget","duration" ,"nb_news_articles","movie_meter_IMDBpro" , "nb_faces" ,"actor3_star_meter" ,"actor1_star_meter",
+                       "log_nb_news_articles" ,"log_movie_meter_IMDBpro", "log_movie_budget", "log_duration" ,"log_actor1_star_meter","log_actor3_star_meter")
+
+results <- data.frame(Predictor = character(0), R_squared = numeric(0), P_value = numeric(0))
+
+
+# Loop through the predictors and run simple linear regressions
+for (predictor in numerical_features) {
+  regression_result <- simple_linear_regression(df, "imdb_score", predictor)
+  results <- rbind(results, regression_result)
+}
+
+print(results)
+
+# filter a model based on p-values
+fit1 = lm(imdb_score~movie_title_length+
+          genres_length+
+          distributor_length+
+          actor1_star_meter+
+          actor1_length+
+          movie_budget+
+          duration+
+          nb_news_articles+
+          movie_meter_IMDBpro+
+          nb_faces, data = df)
+
+
+residualPlots(fit1)
+
+# adding the log data
+fit2 = lm(imdb_score~movie_title_length+
+          genres_length+
+          distributor_length+
+          log_actor1_star_meter+
+          actor1_length+
+          log_movie_budget+
+          log_duration+
+          log_nb_news_articles+
+          log_movie_meter_IMDBpro+
+          nb_faces, data = df)
+
+residualPlots(fit2)
+
+summary(fit2)
+
+glm_model <- glm(imdb_score~poly(movie_budget, 1,raw = TRUE)+
+                poly(duration, 1, raw = TRUE)+
+                poly(nb_news_articles, 1,raw = TRUE)+
+                poly(movie_meter_IMDBpro, 1,raw = TRUE)+
+                nb_faces+
+                release_year+
+                movie_id+
+                # movie_title_length+
+                aspect_ratio+
+                distributor_length+
+                is_Miramax+
+                is_Nov+
+                is_Dec+
+                comput+
+                holiday+
+                riot+
+                # terror+
+                # wish+
+                #love+
+                action+
+                #sport+
+                horror+
+                drama+
+                # crime+
+                documentary+
+                biography+
+                comedy+
+                animation+
+                R+
+                TV.G+
+                TV.14+
+                is_color
+                ,data = df)
+
+summary(glm_model)
+
+significant_variables <- c("movie_budget",
+                           "duration", "nb_news_articles",
+                           "movie_meter_IMDBpro", "nb_faces",
+                           "release_year", "movie_id", "aspect_ratio",
+                           "distributor_length", "is_Miramax", "is_Nov", "is_Dec",
+                           "comput", "holiday", "riot", "action", "comedy",
+                           "horror", "drama", "documentary",
+                           "biography", "animation", "R",
+                           "TV.G", "TV.14", "is_color")
+
+get_cv_mse(glm_model,df,5)
+
+
+# glm with interaction terms
+glm_model2 <- glm(imdb_score~movie_budget+
+                  duration+
+                  nb_news_articles+
+                  movie_meter_IMDBpro+
+                  nb_faces+
+                  release_year+
+                  aspect_ratio+
+                  distributor_length+
+                  is_Miramax+
+                  is_Nov+
+                  is_Dec+
+                  comput+
+                  holiday+
+                  riot+
+                  action+
+                  horror+
+                  drama+
+                  documentary+
+                  biography+
+                  comedy+
+                  animation+
+                  R+
+                  TV.G+
+                  TV.14+
+                  is_color+
+                  duration*animation+
+                  duration*documentary+
+                  duration*biography+
+                  duration*drama+
+                  duration*animation+
+                  duration*horror+
+                  duration*action+
+                  movie_budget*animation+
+                  movie_budget*documentary+
+                  movie_budget*biography+
+                  movie_budget*drama+
+                  movie_budget*animation+
+                  movie_budget*horror+
+                  movie_budget*action+
+                  nb_news_articles*animation+
+                  nb_news_articles*documentary+
+                  nb_news_articles*biography+
+                  nb_news_articles*drama+
+                  nb_news_articles*animation+
+                  nb_news_articles*horror+
+                  nb_news_articles*action+
+                  movie_meter_IMDBpro*animation+
+                  movie_meter_IMDBpro*documentary+
+                  movie_meter_IMDBpro*biography+
+                  movie_meter_IMDBpro*drama+
+                  movie_meter_IMDBpro*animation+
+                  movie_meter_IMDBpro*horror+
+                  movie_meter_IMDBpro*action+
+                  duration*is_color+
+                  movie_budget*is_color+
+                  nb_news_articles*is_color+
+                  movie_meter_IMDBpro*is_color
+    ,data = cbind(df['imdb_score'],df[,significant_variables]))
+
+
+
+summary(glm_model2)
+
+get_cv_mse(glm_model2,df,5)
+
+
+glm_model3 <- glm(imdb_score~movie_budget+
+                  duration+
+                  nb_news_articles+
+                  movie_meter_IMDBpro+
+                  release_year+
+                  aspect_ratio+
+                  distributor_length+
+                  is_Miramax+
+                  is_Nov+
+                  comput+
+                  holiday+
+                  riot+
+                  action+
+                  horror+
+                  drama+
+                  documentary+
+                  biography+
+                  comedy+
+                  animation+
+                  R+
+                  TV.G+
+                  TV.14+
+                  is_color+
+                  duration*biography+
+                  duration*drama+
+                  duration*animation+
+                  duration*action+
+                  nb_news_articles*documentary+
+                  nb_news_articles*animation+
+                  nb_news_articles*horror+
+                  nb_news_articles*action+
+                  movie_meter_IMDBpro*animation+
+                  movie_meter_IMDBpro*documentary+
+                  movie_meter_IMDBpro*biography+
+                  movie_meter_IMDBpro*drama+
+                  movie_meter_IMDBpro*animation+
+                  movie_meter_IMDBpro*horror+
+                  movie_meter_IMDBpro*action+
+                  duration*is_color+
+                  movie_budget*is_color
+
+  ,data = cbind(df['imdb_score'],df[,significant_variables]))
+
+summary(glm_model3)
+
+outlierTest(glm_model3)
+vif(glm_model3)
+
+get_cv_mse(glm_model3,cbind(df['imdb_score'],df[,significant_variables]),10)
+
+downsized_df = cbind(df['imdb_score'],df[,significant_variables])
+
+
+glm_model4 <- glm(imdb_score~poly(movie_budget, 1,raw = TRUE) +
+                  poly(duration, 2,raw = TRUE)+
+                  poly(nb_news_articles, 1,raw = TRUE)+
+                  poly(movie_meter_IMDBpro, 2)+
+                  nb_faces+
+                  release_year+
+                  movie_id+
+                  aspect_ratio+
+                  distributor_length+
+                  is_Miramax+
+                  is_Nov+
+                  comput+
+                  holiday+
+                  riot+
+                  action+
+                  horror+
+                  documentary+
+                  animation +
+                  TV.14+
+                  is_color
+
+  ,data = downsized_df)
+
+score = c()
+
+for (i in 1:100){
+
+  score = c(score,cv.glm(df,glm_model4,K = 5)$delta[1])
+
+}
+
+score
+
+hist(score)
+
+get_cv_mse(glm_model4,df,5)
+
+
+test$log_nb_news_articles = log(test$nb_news_articles)
+
+test$log_movie_meter_IMDBpro = log(test$movie_meter_IMDBpro)
+test$log_movie_budget = log(test$movie_budget)
+test$log_duration = log(test$duration)
+
+
+test$log_nb_news_articles <- ifelse(is.infinite(test$log_nb_news_articles) & test$log_nb_news_articles < 0, 0, test$log_nb_news_articles)
+test$log_movie_meter_IMDBpro <- ifelse(is.infinite(test$log_movie_meter_IMDBpro) & test$log_movie_meter_IMDBpro < 0, 0, test$log_movie_meter_IMDBpro)
+test$log_movie_budget <- ifelse(is.infinite(test$log_movie_budget) & test$log_movie_budget < 0, 0, test$log_movie_budget)
+test$log_duration <- ifelse(is.infinite(test$log_duration) & test$log_duration < 0, 0, test$log_duration)
+
+
+test$log_release_year = log(test$release_year)
+
+glm_model5 <- glm(imdb_score~log_movie_budget +
+                  log_duration+
+                  poly(log_nb_news_articles, 2)+
+                  poly(log_movie_meter_IMDBpro, 2)+
+                  poly(log_actor1_star_meter,2)+
+                  nb_faces+
+                  release_year+
+                  genres_length+
+                  aspect_ratio+
+                  distributor_length+
+                  movie_title_length+
+                  is_Miramax+
+                  is_Nov+
+                  is_Dec+
+                  comput+
+                  holiday+
+                  riot+
+                  terror+
+                  wish+
+                  love+
+                  action+
+                  sport+
+                  horror+
+                  drama+
+                  crime+
+                  documentary+
+                  biography+
+                  comedy +
+                  animation +
+                  R +
+                  TV.G+
+                  TV.14+
+                  is_color, data = df)
+
+outlierTest(glm_model5)
+
+
+summary(lm_model)
+vif(lm_model)
+ncvTest(lm_model)
+correct = coeftest(lm_model, vcov=vcovHC(lm_model, type="HC1"))
+
+
+get_cv_mse(glm_model5,df,K=5)
+residualPlots(glm_model5)
+
+
+pred = predict(lm_model, newdata = test)
+cbind(test$movie_title,as.vector(pred))
+
+pred = predict(glm_model5, newdata = test)
+
+
+cbind(test$movie_title,as.vector(pred))
+residualPlots(lm_model)
+
+get_cv_mse(glm_model,df,K=5)
+
+pred = predict(glm_model, newdata = test)
+cbind(test$movie_title,as.vector(pred))
+
+summary(lm_model)
+
+
 # Final LM Ordi. least sq. (R^2)
-lm_model = lm(imdb_score~log_movie_budget +
+lm_final = lm(imdb_score~log_movie_budget +
               log_duration+
               poly(log_nb_news_articles, 1, raw = TRUE)+
               poly(log_movie_meter_IMDBpro, 4)+
@@ -420,10 +811,13 @@ lm_model = lm(imdb_score~log_movie_budget +
               R+
               TV.14+
               is_color
-              ,data = df[-c(1806,1581,191,395,1436,1255,989),])
+              ,data = df)
+
+outlierTest(lm_final)
+df_without_outliers = df[-c(1806,1581,191,395,1436,1255,989),]
 
 # Final GLM Max Likelihood (for 5 fold cv)
-glm_model = glm(imdb_score~log_movie_budget +
+glm_final = glm(imdb_score~log_movie_budget +
                 log_duration+
                 poly(log_nb_news_articles, 1, raw = TRUE)+
                 poly(log_movie_meter_IMDBpro, 4)+
@@ -441,4 +835,9 @@ glm_model = glm(imdb_score~log_movie_budget +
                 R+
                 TV.14+
                 is_color
-                ,data = df)
+                , data = df_without_outliers)
+
+get_cv_mse(glm_final,df_without_outliers,5)
+
+pred = predict(glm_final, newdata = test)
+cbind(test$movie_title,as.vector(pred))

@@ -9,14 +9,14 @@ library(psych)
 require(lmtest)
 require(plm)
 
-setwd('C:/Users/zzhong13/Desktop/Multivariate')
-df = read.csv('./Cleaned Training Set.csv')
+# setwd('C:/Users/zzhong13/Desktop/Multivariate')
+df = read.csv('midterm-project/MGSC-661-Project/Cleaned Training Set.csv')
 
 
-df$log_nb_news_articles <- ifelse(is.infinite(df$log_nb_news_articles) & df$log_nb_news_articles < 0, 0, df$log_nb_news_articles)
-df$log_movie_meter_IMDBpro <- ifelse(is.infinite(df$log_movie_meter_IMDBpro) & df$log_movie_meter_IMDBpro < 0, 0, df$log_movie_meter_IMDBpro)
-df$log_movie_budget <- ifelse(is.infinite(df$log_movie_budget) & df$log_movie_budget < 0, 0, df$log_movie_budget)
-df$log_duration <- ifelse(is.infinite(df$log_duration) & df$log_duration < 0, 0, df$log_duration)
+# df$log_nb_news_articles <- ifelse(is.infinite(df$log_nb_news_articles) & df$log_nb_news_articles < 0, 0, df$log_nb_news_articles)
+# df$log_movie_meter_IMDBpro <- ifelse(is.infinite(df$log_movie_meter_IMDBpro) & df$log_movie_meter_IMDBpro < 0, 0, df$log_movie_meter_IMDBpro)
+# df$log_movie_budget <- ifelse(is.infinite(df$log_movie_budget) & df$log_movie_budget < 0, 0, df$log_movie_budget)
+# df$log_duration <- ifelse(is.infinite(df$log_duration) & df$log_duration < 0, 0, df$log_duration)
 
 
 
@@ -1376,42 +1376,20 @@ lm_model = lm(imdb_score~log_movie_budget +
                   log_duration+
                   poly(log_nb_news_articles, 1, raw = TRUE)+
                   poly(log_movie_meter_IMDBpro, 4)+
-                  #release_year+
-                  #actor1_length+
-                  #poly(log_actor1_star_meter,1,raw = TRUE)+
-                  #movie_title_length+
                   is_color+
                   poly(genres_length,2)+
-                  #distributor_length+
-                  #genres_length +
-                  #distributor_length+
-                  #actor1_length+
                   biography+
-                  #comedy+
                   animation+
                   documentary+
                   is_Miramax+
-                  #is_Nov+
-                  # comput+
-                  # holiday+
-                  # riot+
-                  # # terror+
-                  # # wish+
-                  #love+
-                  # action+
-                  # sport+
                   horror+
                   drama+
-                  # crime+
                   documentary+
                   biography+
-                  # # comedy +
-                  animation+ 
+                  animation+
                   R+ 
-                  #TV.G
                   TV.14+
                   is_color
-                #is_Dec
                 ,data = df[-c(1806,1581,191,395,1436,1255,989),])
 
 get_cv_mse(glm_model,df[-c(1806,1581,191,395,1436,1255,989),],K=5)
