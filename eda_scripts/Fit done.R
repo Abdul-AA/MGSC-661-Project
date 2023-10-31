@@ -10,17 +10,17 @@ require(lmtest)
 require(plm)
 
 # setwd('C:/Users/zzhong13/Desktop/Multivariate')
-df = read.csv('midterm-project/MGSC-661-Project/Cleaned Training Set.csv')
+df = read.csv('../Cleaned Training Set.csv')
 
 
-# df$log_nb_news_articles <- ifelse(is.infinite(df$log_nb_news_articles) & df$log_nb_news_articles < 0, 0, df$log_nb_news_articles)
-# df$log_movie_meter_IMDBpro <- ifelse(is.infinite(df$log_movie_meter_IMDBpro) & df$log_movie_meter_IMDBpro < 0, 0, df$log_movie_meter_IMDBpro)
-# df$log_movie_budget <- ifelse(is.infinite(df$log_movie_budget) & df$log_movie_budget < 0, 0, df$log_movie_budget)
-# df$log_duration <- ifelse(is.infinite(df$log_duration) & df$log_duration < 0, 0, df$log_duration)
+df$log_nb_news_articles <- ifelse(is.infinite(df$log_nb_news_articles) & df$log_nb_news_articles < 0, 0, df$log_nb_news_articles)
+df$log_movie_meter_IMDBpro <- ifelse(is.infinite(df$log_movie_meter_IMDBpro) & df$log_movie_meter_IMDBpro < 0, 0, df$log_movie_meter_IMDBpro)
+df$log_movie_budget <- ifelse(is.infinite(df$log_movie_budget) & df$log_movie_budget < 0, 0, df$log_movie_budget)
+df$log_duration <- ifelse(is.infinite(df$log_duration) & df$log_duration < 0, 0, df$log_duration)
 
 
 
-df = read.csv('./logged Train Set.csv ')
+df = read.csv('../processing/logged test data.csv')
 
 df$log_release_year = log(df$release_year)
 
@@ -221,7 +221,7 @@ lm_model <- lm(imdb_score~poly(movie_budget, 1,raw = TRUE)+
                ,data = df)
 
 
-write.csv(df,file = "logged Train Set.csv",row.names = FALSE)
+write.csv(df, file = "../processing/logged Train Set.csv", row.names = FALSE)
 
 
 cols_with_minus_inf <- sapply(df, function(col) any(is.infinite(col) & col == -Inf))
@@ -463,7 +463,7 @@ glm_model2 <- glm(imdb_score~movie_budget+
                     duration*is_color+
                     movie_budget*is_color+
                     nb_news_articles*is_color+
-                    movie_meter_IMDBpro*is_color+
+                    movie_meter_IMDBpro*is_color
 
   
                  ,data = cbind(df['imdb_score'],df[,significant_variables]))
@@ -501,7 +501,7 @@ sum(df$animation)
 
 
 
-test = read.csv('./test_data_IMDB_Fall_2023.csv')
+test = read.csv('../processing/test_data_IMDB_Fall_2023.csv')
 
 create_maturity = function(data,f){
   
@@ -691,7 +691,7 @@ glm_model3 <- glm(imdb_score~movie_budget+
                     movie_meter_IMDBpro*horror+
                     movie_meter_IMDBpro*action+
                     duration*is_color+
-                    movie_budget*is_color+
+                    movie_budget*is_color
                     #nb_news_articles*is_color+
                     #movie_meter_IMDBpro*is_color
                     
@@ -951,7 +951,7 @@ test$log_genres_length = log(test$genres_length)
 
 test$log_distributor_length = log(test$distributor_length)
 
-write.csv(test, file = "logged test data.csv", row.names = FALSE)
+write.csv(test, file = "../processing/logged test data.csv", row.names = FALSE)
 
 
 
@@ -977,8 +977,8 @@ write.csv(test, file = "logged test data.csv", row.names = FALSE)
 
 
 
-glm_model = glm(imdb_score~poly(log_movie_budget, 1,raw = TRUE) + 
-                  log_duration, 3,raw = TRUE)+
+glm_model = glm(imdb_score~poly(log_movie_budget, 1,raw = TRUE) +
+  poly(log_duration, 3,raw = TRUE)+
                   log_nb_news_articles+
                   poly(log_movie_meter_IMDBpro, 3)+
                   #movie_id+
@@ -1000,7 +1000,7 @@ glm_model = glm(imdb_score~poly(log_movie_budget, 1,raw = TRUE) +
                   is_Nov+
                   R
                 #is_Dec
-                ,data = df)
+,data = df)
 
 
 write.csv(df, file = "newest train.csv", row.names = FALSE)

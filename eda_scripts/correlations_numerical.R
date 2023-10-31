@@ -183,7 +183,7 @@ s <- textSimilarity(x="relationship", y=df_id_keywords[1,2], method="cosine")
 
 summary(model2)
 
-test = read.csv('../test_data_IMDB_Fall_2023.csv')
+test = read.csv('../processing/test_data_IMDB_Fall_2023.csv')
 
  # make a prediction on the test data
 

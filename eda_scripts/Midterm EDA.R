@@ -95,7 +95,7 @@ print(cf_plot)
 library(dplyr)
 
 # Read the training data
-IMDB=read.csv('/midterm-project/MGSC-661-Project/IMDB_data_Fall_2023.csv')
+IMDB=read.csv('../processing/IMDB_data_Fall_2023.csv')
 
 # List of unique categories within "maturity_rating"
 maturity_categories <- unique(IMDB$maturity_rating)
@@ -110,14 +110,14 @@ for (category in maturity_categories) {
 
 
   # Fit a linear regression model for the current category
-  lm_model <- lm(imdb_score ~ dummy, data = IMDB_dummified)
-  
-  # Store the model and results in the list
-  lm_list[[category]] <- list(
-    category = category,
-    model = lm_model,
-    summary = summary(lm_model)
-  )
+  # lm_model <- lm(imdb_score ~ dummy, data = IMDB_dummified)
+  #
+  # # Store the model and results in the list
+  # lm_list[[category]] <- list(
+  #   category = category,
+  #   model = lm_model,
+  #   summary = summary(lm_model)
+  # )
 }
 
 # Access results for each category and print them

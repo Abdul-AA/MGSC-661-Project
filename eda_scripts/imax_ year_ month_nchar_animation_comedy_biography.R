@@ -10,10 +10,10 @@ library(stargazer)
 setwd('C:/Users/zzhong13/Desktop/Multivariate')
 
 
-train = read.csv('../IMDB_data_Fall_2023.csv')
+train = read.csv('../processing/IMDB_data_Fall_2023.csv')
 View(train)
 
-test = read.csv('../test_data_IMDB_Fall_2023.csv')
+test = read.csv('../processing/test_data_IMDB_Fall_2023.csv')
 View(test)
 
 colnames(train)
@@ -367,7 +367,7 @@ summary(model)
 res = cv.glm(data,model,K= 5)
 res$delta
 
-test = read.csv('../test_data_IMDB_Fall_2023.csv')
+test = read.csv('../processing/test_data_IMDB_Fall_2023.csv')
 
 
 test$actor1_length = lapply(test$actor1,nchar)

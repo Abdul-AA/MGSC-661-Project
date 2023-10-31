@@ -1,6 +1,6 @@
-imdb <- read.csv('/midterm-project/MGSC-661-Project/IMDB_data_Fall_2023.csv')
+imdb <- read.csv('../processing/IMDB_data_Fall_2023.csv')
 
-test <- read.csv('/midterm-project/MGSC-661-Project/test_data_IMDB_Fall_2023.csv')
+test <- read.csv('../processing/test_data_IMDB_Fall_2023.csv')
 
 install.packages("tm")
 install.packages("SnowballC")
