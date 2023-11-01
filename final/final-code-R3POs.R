@@ -1,5 +1,3 @@
-
-
 # libraries required
 library(dplyr)
 library(tidyr)
@@ -21,16 +19,8 @@ require(lmtest)
 require(plm)
 
 
-setwd('C:/Users/zzhong13/Desktop/Multivariate')
-
-
-
-log_test = read.csv('./logged test data.csv')
-log_train = read.csv('./newest train.csv')
-
-imdb = read.csv('./IMDB_data_Fall_2023.csv')
-test = read.csv('./test_data_IMDB_Fall_2023.csv')
-
+imdb = read.csv('midterm-project/MGSC-661-Project/final/IMDB_data_Fall_2023.csv')
+test = read.csv('midterm-project/MGSC-661-Project/final/test_data_IMDB_Fall_2023.csv')
 
 add_genres = function(df) {
   df$documentary <- ifelse(grepl("Documentary", df$genres), 1, 0)
@@ -40,7 +30,6 @@ add_genres = function(df) {
   df$mystery <- ifelse(grepl("Mystery", df$genres), 1, 0)
   df$family <- ifelse(grepl("Family", df$genres), 1, 0)
 
-  ## again but also checking plot_keywords
   df$action <- ifelse(grepl("Action", df$genres), 1, 0)+ifelse(grepl("action", df$plot_keywords), 1, 0)
   df$action  = ifelse(df$action >= 1,1,0)
 
@@ -142,27 +131,20 @@ return(test)
 }
 
 
-
 test <- add_genres(test)
 test <- add_maturity_test(test)
 
 
-# Function to extract stem words
 extract_stem_words <- function(text) {
-  # lowercase the text
   text <- tolower(text)
-  # Tokenize the text
   words <- unlist(strsplit(text, "\\|"))
-  # Stem the words
   stemmed_words <- wordStem(words, language = "en")
   return(stemmed_words)
 }
 
-# Apply the function to your DataFrame
 stemmed_plot_keywords <- sapply(test$plot_keywords, extract_stem_words)
 
 
-# Split the plot_keywords column and check for the presence of each keyword
 for (keyword in stemmed_plot_keywords) {
   imdb[[keyword]] <- ifelse(grepl(keyword, imdb$plot_keywords), 1, 0)
 }
@@ -174,19 +156,23 @@ add_logs = function(df) {
   df$log_movie_budget = log(df$movie_budget)
   df$log_duration = log(df$duration)
   df$log_actor1_star_meter = log(df$actor1_star_meter)
-  
+
   df$log_nb_news_articles <- ifelse(is.infinite(df$log_nb_news_articles) & df$log_nb_news_articles < 0, 0, df$log_nb_news_articles)
   df$log_movie_meter_IMDBpro <- ifelse(is.infinite(df$log_movie_meter_IMDBpro) & df$log_movie_meter_IMDBpro < 0, 0, df$log_movie_meter_IMDBpro)
+
+  if (is.String(df$movie_budget)){
+    df$movie_budget = as.numeric(gsub(",", "", df$movie_budget))
+  }
+
   df$log_movie_budget <- ifelse(is.infinite(df$log_movie_budget) & df$log_movie_budget < 0, 0, df$log_movie_budget)
   df$log_duration <- ifelse(is.infinite(df$log_duration) & df$log_duration < 0, 0, df$log_duration)
   
   df$log_actor1_star_meter <- ifelse(is.infinite(df$log_actor1_star_meter) & df$log_actor1_star_meter < 0, 0, df$log_actor1_star_meter)
-  
-  
+
+
 
   return(df)
 }
-
 
 
 imdb<- add_logs(imdb)
@@ -224,12 +210,8 @@ imdb <- add_others(imdb)
 test <- add_others(test)
 
 
-diff <- setdiff(names(log_train), names(imdb))
-print("Columns in log_train not in imdb:")
-print(diff) # these variables are stored with dummy_ prefix so dont worry
-
-
-lm_final = lm(imdb_score~log_movie_budget +
+lm_final = lm(imdb_score~
+                log_movie_budget+
                 log_duration+
                 poly(log_nb_news_articles, 1, raw = TRUE)+
                 poly(log_movie_meter_IMDBpro, 4)+
@@ -248,37 +230,9 @@ lm_final = lm(imdb_score~log_movie_budget +
                 is_color
               ,data = imdb)
 
-
-
-
-
-pred = predict(lm_final, newdata = test)
-
-cbind(test$movie_title,as.vector(pred)) 
-summary(lm_final )
-
-
-lm_final = lm(imdb_score~log_movie_budget +
-                log_duration+
-                poly(log_nb_news_articles, 1, raw = TRUE)+
-                poly(log_movie_meter_IMDBpro, 4)+
-                is_color+
-                poly(genres_length,2)+
-                biography+
-                documentary+
-                is_Miramax+
-                horror+
-                drama+
-                documentary+
-                biography+
-                animation+
-                R+
-                TV.14+
-                is_color
-              ,data = imdb)
+summary(lm_final)
 
 outlierTest(lm_final)
-
 imdb_without_outliers = imdb[-c(1806,1581,191,395,1436,1255,989),]
 
 
@@ -302,7 +256,93 @@ glm_final = glm(imdb_score~log_movie_budget +
                   is_color
                 , data = imdb_without_outliers)
 
+# our final predictions
 pred = predict(glm_final, newdata = test)
 
 cbind(test$movie_title,as.vector(pred)) 
-summary(lm_final )
+summary(glm_final)
+
+# Supplementary code for the report
+get_cv_mse <- function(model_formula, data, K) {
+  mse_distribution <- numeric(100)
+
+  for (i in 1:100) {
+    fit <- glm(model_formula, data = data)
+    mse_distribution[i] <- cv.glm(data, fit, K = K)$delta[1]
+  }
+
+  print(mse_distribution)
+  hist(mse_distribution)
+}
+
+get_cv_mse(glm_final,imdb_without_outliers,5)
+
+# stargazer code
+names(glm_final$coefficients) = c("Intercept","Log of Movie Budget", "Log of Duration", "Log of Number of News Articles",
+                                  "Log of Movie Meter", "Log of Movie Meter^2", "Log of Movie Meter^3", "Log of Movie Meter^4",
+                                  "Is Color", "Length of Genres", "Length of Genres^2", "Biography", "Animation",
+                                  "Documentary", "Produced by Miramax", "Horror", "Drama", "Rated R", "Rated TV-14")
+
+stargazer(glm_final, type = "text", align = TRUE,digits = 2, dep.var.labels = "IMDB Score")
+
+
+# Log Transformation charts
+log_transformation_charts <- function(imdb) {
+  par(mfrow = c(2, 2))
+  hist(imdb$actor1_star_meter, breaks = 10, main = "Distribution of Actor 1's Star Meter", xlab = "Star Meter")
+  hist(log(imdb$actor1_star_meter), breaks = 10, main = "Distribution of Log of Actor 1 Star Meter", xlab = "Log of Star Meter")
+
+  par(mfrow = c(2, 2))
+  hist(imdb$actor2_star_meter, breaks = 10, main = "Distribution of Actor 2's Star Meter", xlab = "Star Meter")
+  hist(log(imdb$actor2_star_meter), breaks = 10, main = "Distribution of Log of Actor 2 Star Meter", xlab = "Log of Star Meter")
+
+  par(mfrow = c(2, 2))
+  hist(imdb$actor3_star_meter, breaks = 10, main = "Distribution of Actor 3's Star Meter", xlab = "Star Meter")
+  hist(log(imdb$actor3_star_meter), breaks = 10, main = "Distribution of Log of Actor 3's Star Meter", xlab = "Log of Star Meter")
+
+  par(mfrow = c(2, 2))
+  hist(imdb$nb_news_articles, breaks = 100, main = "Distribution of News Articles", xlab = "Count")
+  hist(log(imdb$log_nb_news_articles), breaks = 100, main = "Distribution of Log of News Articles", xlab = "Log Count")
+
+  par(mfrow = c(2, 2))
+  hist(imdb$movie_meter_IMDBpro, breaks = 100, main = "Distribution of Movie Meter (IMDBpro)", xlab = "Meter")
+  hist(log(imdb$log_movie_meter_IMDBpro), breaks = 100, main = "Distribution of Log of Movie Meter (IMDBpro)", xlab = "Log of Meter")
+
+  par(mfrow = c(2, 2))
+  hist(imdb$duration, breaks = 100, main = "Distribution of Duration", xlab = "Duration")
+  hist(log(imdb$duration), breaks = 100, main = "Distribution of Log of Duration", xlab = "Log of Duration")
+
+  par(mfrow = c(2, 2))
+  hist(imdb$movie_budget, breaks = 100, main = "Distribution of Movie Budget", xlab = "Budget")
+  hist(log(imdb$movie_budget), breaks = 100, main = "Distribution of Log of Movie Budget", xlab = "Log of Budget")
+  #
+
+}
+
+log_transformation_charts(imdb)
+
+cor_heatmap <- function(imdb) {
+  numeric_df <- imdb[c("movie_budget", "release_day", "release_year", "duration", "nb_news_articles", "actor1_star_meter",
+                       "actor2_star_meter", "actor3_star_meter", "nb_faces","movie_meter_IMDBpro","imdb_score")]
+  # Rename variables in numeric_df
+  names(numeric_df) <- c("Movie Budget", "Release Day", "Release Year", "Duration","Number of News Articles",
+                         "Actor 1 Star Meter","Actor 2 Star Meter", "Actor 3 Star Meter", "Number of Faces",
+                         "Movie Meter (IMDB Pro)", "IMDB Score")
+
+  cor_matrix <- cor(numeric_df)
+  # Melt the correlation matrix for ggplot
+  cor_melted <- melt(cor_matrix)
+  ggplot(data = cor_melted, aes(x = Var1, y = Var2)) +
+    geom_tile(aes(fill = value)) +
+    geom_text(aes(label = round(value, 2)), size = 3) +
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0,
+                         limit = c(min(cor_melted$value), max(cor_melted$value)), name = "Correlation") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+    coord_fixed()
+}
+
+cor_heatmap(imdb)
+
+
+# To view more supplemental code, please visit: https://github.com/avi10malhotra/MGSC-661-Project/tree/main/eda_scripts
